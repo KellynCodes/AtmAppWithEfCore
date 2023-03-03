@@ -29,7 +29,7 @@ namespace AtmDAL.Database.CrudOperation
            var UserAccount = await DbContext.Accounts.SingleOrDefaultAsync(account => account.UserId == userId);
             if(UserAccount != null)
             {
-                UserAccount.Balance -= amount;
+                UserAccount.Balance = amount;
             }
             await DbContext.SaveChangesAsync();
             Console.WriteLine("Your balance has been update successfully.");
@@ -40,7 +40,7 @@ namespace AtmDAL.Database.CrudOperation
            var UserAccount = await DbContext.Accounts.SingleOrDefaultAsync(account => account.UserId == userId);
             if(UserAccount != null)
             {
-                UserAccount.Balance -= amount;
+                UserAccount.Balance = amount;
             }
             await DbContext.SaveChangesAsync();
             Console.WriteLine("Your balance has been update successfully.");
@@ -65,7 +65,7 @@ namespace AtmDAL.Database.CrudOperation
             var AtmInfo = await DbContext.Atms.SingleOrDefaultAsync(atm => atm.Id == atmId);
             if (AtmInfo != null)
             {
-                AtmInfo.AvailableCash -= atmAvailableCash;
+                AtmInfo.AvailableCash = atmAvailableCash;
             }
             await DbContext.SaveChangesAsync();
             Console.WriteLine("Your balance has been update successfully.");
@@ -77,7 +77,7 @@ namespace AtmDAL.Database.CrudOperation
             var AtmInfo = await DbContext.Atms.SingleOrDefaultAsync(atm => atm.Id == atmId);
             if (AtmInfo != null)
             {
-                AtmInfo.AvailableCash += atmAvailableCash;
+                AtmInfo.AvailableCash = atmAvailableCash;
             }
             await DbContext.SaveChangesAsync();
             Console.WriteLine("Your balance has been update successfully.");
