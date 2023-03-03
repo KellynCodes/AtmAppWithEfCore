@@ -15,7 +15,8 @@ namespace AtmDAL.Database.CrudOperation
                 ReceiverId = reciever,
                 TransactionAmount = transactionAmount,
                 TransactionType = transactionType,
-                TransactionDate = transactionDate
+                TransactionDate = transactionDate,
+                CreatedDate  = transactionDate
             };
 
             string Message = "Transaction stored succesfully";
