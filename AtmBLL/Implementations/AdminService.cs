@@ -105,7 +105,7 @@ namespace AtmBLL.Implementation
                 {
                     message.Success($"Reloading {amount}...");
                     decimal UpdatedAmount = AtmInfo.AvailableCash += amount;
-                    await crud.AddToAtmAmountAsync(ReturnAtmId.Id(), UpdatedAmount);
+                    await crud.UpdateAtmAmountAsync(ReturnAtmId.Id(), UpdatedAmount);
                     message.Alert($"New Balance :: {AtmInfo.AvailableCash}");
                     await MainMethod.GetUserChoice();
                 }

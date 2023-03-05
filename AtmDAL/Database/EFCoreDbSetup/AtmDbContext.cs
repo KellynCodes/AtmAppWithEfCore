@@ -31,7 +31,8 @@ namespace AtmDAL.Database.EFCoreDbSetup
 
             modelBuilder.Entity<Account>(entity =>
             {
-                entity.HasIndex(property => new { property.AccountNo, property.Id }, $"IX_Unique_{nameof(Account.AccountNo)}{nameof(Account.Id)}").IsUnique();
+                entity.HasIndex(property =>  property.AccountNo, $"IX_Unique_{nameof(Account.AccountNo)}").IsUnique();
+                entity.HasIndex(property => property.UserId).IsUnique(false);
                 entity.Property(property => property.AccountNo).IsRequired(true).HasMaxLength(100);
                 entity.Property(property => property.Concurrency).IsRequired(false);
                 entity.Property(property => property.UpdatedDate).IsRequired(false);

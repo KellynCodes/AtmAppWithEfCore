@@ -11,12 +11,13 @@
         }
 
         public int BankId { get; set; }
+        public int AccountId { get; set; }
         public string FullName { get; set; }
         public string Email { get; set; }
         public string Password { get; set; }
         public string PhoneNumber { get; set; }
         public virtual string Role { get; set; }
         public ICollection<Bank> Bank { get; set; }
-        public Account Account { get; set; }
+        public ICollection<Account> Account { get; set; }
     }
 }

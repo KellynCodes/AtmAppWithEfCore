@@ -4,6 +4,7 @@ using AtmDAL.Database.EFCoreDbSetup;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AtmDAL.Migrations
 {
     [DbContext(typeof(AtmDbContext))]
-    partial class AtmDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230303191721_Indexing")]
+    partial class Indexing
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -68,7 +71,8 @@ namespace AtmDAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId")
+                        .IsUnique();
 
                     b.HasIndex(new[] { "AccountNo" }, "IX_Unique_AccountNo")
                         .IsUnique();
@@ -250,9 +254,6 @@ namespace AtmDAL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("AccountId")
-                        .HasColumnType("int");
-
                     b.Property<int>("BankId")
                         .HasColumnType("int");
 
@@ -316,8 +317,8 @@ namespace AtmDAL.Migrations
             modelBuilder.Entity("AtmDAL.Models.Account", b =>
                 {
                     b.HasOne("AtmDAL.Models.User", "User")
-                        .WithMany("Account")
-                        .HasForeignKey("UserId")
+                        .WithOne("Account")
+                        .HasForeignKey("AtmDAL.Models.Account", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -353,7 +354,8 @@ namespace AtmDAL.Migrations
 
             modelBuilder.Entity("AtmDAL.Models.User", b =>
                 {
-                    b.Navigation("Account");
+                    b.Navigation("Account")
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }

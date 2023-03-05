@@ -1,6 +1,8 @@
 ﻿using AtmDAL.Models;
 using AtmDAL.Enums;
 using AtmDAL.Database.EFCoreDbSetup;
+using AtmBLL.Interfaces;
+using AtmBLL.Implementation;
 
 namespace AtmBLL.Utilities
 {
@@ -9,6 +11,7 @@ namespace AtmBLL.Utilities
         public static async Task NewUser()
         {
 
+        IMessage message = new Message();
          AtmDbFactory atmDbFactory = new();
             var DbContext = atmDbFactory.CreateDbContext(null);
         var UserData = new User
@@ -55,12 +58,17 @@ namespace AtmBLL.Utilities
                Pin = "5432",
                CreatedDate = DateTime.UtcNow.ToLongDateString()
            };
-            await DbContext.Users.AddAsync(UserData);
-            await DbContext.Accounts.AddAsync(AccountData);
-            await DbContext.Users.AddAsync(SecondUserData);
-            await DbContext.Accounts.AddAsync(SecondAccountData);
-            string Message = await DbContext.SaveChangesAsync() > 0 ? "Admin defualt user created successfully" : "Admin User was not successful";
-            Console.WriteLine(Message);
+            try
+            {
+                await DbContext.Users.AddAsync(UserData);
+                await DbContext.Accounts.AddAsync(AccountData);
+                await DbContext.Users.AddAsync(SecondUserData);
+                await DbContext.AddAsync(SecondAccountData);
+            }catch(Exception ex)
+            {
+                message.Error(ex.Message);
+               await MainMethod.GetUserChoice();
+            }
         }
     }
 }

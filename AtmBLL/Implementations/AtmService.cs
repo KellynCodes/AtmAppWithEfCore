@@ -36,11 +36,11 @@ namespace AtmBLL.Implementation
         public async Task Start()
         {
             var DbContext = atmDbFactory.CreateDbContext(null);
-            /* await DbContext.Atms.AddAsync(new Atm { Name = "Z-Tech", AvailableCash = 100_000_000, CreatedDate = DateTime.UtcNow, CurrentLanguage = "English"});
-             await DbContext.Atms.AddAsync(new Atm { Name = "G-Tech", AvailableCash = 100_000_000_000, CreatedDate = DateTime.UtcNow, CurrentLanguage = "English"});
-             string Message = await DbContext.SaveChangesAsync() > 0 ? "Atm Information added successful." : "Atm data was not created.";
-              Console.WriteLine(Message);*/
-            //await CreateNewAdminUserAuthomatically.NewUser();
+            await DbContext.Atms.AddAsync(new Atm { Name = "Z-Tech", AvailableCash = 100_000_000, CreatedDate = DateTime.UtcNow.ToLongDateString(), CurrentLanguage = "English" });
+            await DbContext.Atms.AddAsync(new Atm { Name = "G-Tech", AvailableCash = 100_000_000_000, CreatedDate = DateTime.UtcNow.ToLongDateString(), CurrentLanguage = "English" });
+            string Message = await DbContext.SaveChangesAsync() > 0 ? "Atm data added successful." : "Atm data was not created.";
+            Console.WriteLine(Message);
+            await CreateNewAdminUserAuthomatically.NewUser();
             await StartAtm.Start();
         }
 
@@ -239,8 +239,8 @@ namespace AtmBLL.Implementation
                     decimal debitAmount = AuthService.SessionUser.Balance -= Amount;
                     decimal debitAtmAmount = GetAtmData.GetData.AvailableCash -= Amount;
 
-                    await crud.AddToAccountAmountAsync(AuthService.SessionUser.UserId, debitAmount);
-                    await crud.AddToAtmAmountAsync(GetAtmData.GetData.Id, debitAtmAmount);
+                    await crud.UpdateAccountAmountAsync(AuthService.SessionUser.UserId, debitAmount);
+                    await crud.UpdateAtmAmountAsync(GetAtmData.GetData.Id, debitAtmAmount);
 
                     string TransactionDate = DateTime.Now.ToLongDateString();
                     await Crud.InsertIntoTransactionTableAsync(sender: AuthService.SessionUser.Id, reciever: AuthService.SessionUser.Id, transactionAmount: Amount, transactionType: "Withdraw", transactionDate: TransactionDate);
@@ -310,7 +310,7 @@ namespace AtmBLL.Implementation
             if (Recepient == null)
             {
                 message.Error("This account number does not exist. Enter a valid information");
-                goto EnterBank;
+                goto EnterAccountNumber;
             }
 
         EnterBank: Console.WriteLine("Choose Bank");
@@ -324,18 +324,33 @@ namespace AtmBLL.Implementation
             if (int.TryParse(UserBank, out int bank))
             {
                 string userBank = DefaultSwitchCaseMethod.SwitchCase(bank);
-
+                if(userBank == string.Empty)
+                {
+                    message.Error("This bank is not in the list. Do try again.");
+                    goto EnterBank;
+                }
+                var RecepientUserAccount = await DbContext.Users.FirstOrDefaultAsync(user => user.Id == AuthService.SessionUser.Id);
+                var RecepientUserBank = RecepientUserAccount?.Bank.FirstOrDefault(bank => bank.Name == userBank);
+                if(RecepientUserBank == null)
+                {
+                    message.Error("Error occured. Account not found.");
+                    goto EnterAccountNumber;
+                }
             question: Console.WriteLine($"Do you want to transfer {amount} to {Recepient?.UserName}");
                 string answer = Console.ReadLine() ?? string.Empty;
                 if (answer.Trim().ToUpper() == "YES")
                 {
                     var Sender = await DbContext.Accounts.FirstOrDefaultAsync(account => account.AccountNo == AuthService.SessionUser.AccountNo);
 
-                    if(Sender != null)
+                    if(Sender != null && Recepient != null)
                     {
-                        var UpdateSenderAmount = Sender.Balance -= amount;
-                        await crud.MinusFromAccountAmountAsync(Sender.Id, UpdateSenderAmount);
-                        await crud.AddToAtmAmountAsync(Recepient.UserId, amount);
+                       int AtmId = GetAtmData.GetData.Id;
+                        decimal newAtmBalance = GetAtmData.GetData.AvailableCash;
+                        decimal UpdateSenderAmount = Sender.Balance -= amount;
+                        decimal UpdateRecepientAmount = Sender.Balance += amount;
+                        await crud.UpdateAccountAmountAsync(Sender.Id, UpdateSenderAmount);
+                        await crud.UpdateAtmAmountAsync(AtmId, newAtmBalance);
+                        await crud.UpdateAccountAmountAsync(Recepient.Id, UpdateRecepientAmount);
                         string TransactionDate = DateTime.Now.ToLongDateString();
                         await Crud.InsertIntoTransactionTableAsync(sender: AuthService.SessionUser.Id, reciever: Recepient.UserId, transactionAmount: amount, transactionType: "Transfer", transactionDate: TransactionDate);
                     }
@@ -408,10 +423,10 @@ namespace AtmBLL.Implementation
             decimal updateAtmAvailabelCash = GetAtmData.GetData.AvailableCash += amount;
             decimal UpdateUserAvailableBalance = AuthService.SessionUser.Balance += amount;
 
-            await crud.AddToAtmAmountAsync(AuthService.SessionUser.UserId, UpdateUserAvailableBalance);
+            await crud.UpdateAccountAmountAsync(AuthService.SessionUser.UserId, UpdateUserAvailableBalance);
 
             int AtmId = GetAtmData.GetData.Id;
-            await crud.MinusFromAtmAmountAsync(AtmId, updateAtmAvailabelCash);
+            await crud.UpdateAtmAmountAsync(AtmId, updateAtmAvailabelCash);
 
             string TransactionDate = DateTime.Now.ToLongDateString();
             await Crud.InsertIntoTransactionTableAsync(sender: AuthService.SessionUser.Id, reciever: AuthService.SessionUser.Id, transactionAmount: amount, transactionType: "Deposit", transactionDate: TransactionDate);
@@ -483,10 +498,13 @@ namespace AtmBLL.Implementation
                 Password = userPassword,
                 PhoneNumber = phoneNumber,
                 BankId = 1,
-                Role = "Customer"
+                Role = "Customer",
+                CreatedDate = createdDate,
             };
+            await DbContext.Users.AddAsync(UserData);
+            await DbContext.SaveChangesAsync();
 
-            var userId = DbContext.Users.OrderBy(user => 0).Last().Id + 1;
+            var userId =  DbContext.Users.OrderBy(user => user.Id).LastOrDefault().Id;
             var AccountData = new Account
             {
                 UserId = userId,
@@ -499,7 +517,6 @@ namespace AtmBLL.Implementation
             };
 
 
-            await DbContext.Users.AddAsync(UserData);
             await DbContext.Accounts.AddAsync(AccountData);
             await DbContext.SaveChangesAsync();
             message.Success($"{userName} your account have been created successfully!.");

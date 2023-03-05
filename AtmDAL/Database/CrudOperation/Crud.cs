@@ -23,18 +23,7 @@ namespace AtmDAL.Database.CrudOperation
             await Helpers.AddChangesAsync(NewTransaction, Message);
         }
 
-        public async Task MinusFromAccountAmountAsync(int userId, decimal amount)
-        {
-            AtmDbContext DbContext = atmDbFactory.CreateDbContext(null);
-           var UserAccount = await DbContext.Accounts.SingleOrDefaultAsync(account => account.UserId == userId);
-            if(UserAccount != null)
-            {
-                UserAccount.Balance = amount;
-            }
-            await DbContext.SaveChangesAsync();
-            Console.WriteLine("Your balance has been update successfully.");
-        }
-        public async Task AddToAccountAmountAsync(int userId, decimal amount)
+        public async Task UpdateAccountAmountAsync(int userId, decimal amount)
         {
             AtmDbContext DbContext = atmDbFactory.CreateDbContext(null);
            var UserAccount = await DbContext.Accounts.SingleOrDefaultAsync(account => account.UserId == userId);
@@ -59,19 +48,7 @@ namespace AtmDAL.Database.CrudOperation
         }
 
 
-        public async Task MinusFromAtmAmountAsync(int atmId, decimal atmAvailableCash)
-        {
-            AtmDbContext DbContext = atmDbFactory.CreateDbContext(null);
-            var AtmInfo = await DbContext.Atms.SingleOrDefaultAsync(atm => atm.Id == atmId);
-            if (AtmInfo != null)
-            {
-                AtmInfo.AvailableCash = atmAvailableCash;
-            }
-            await DbContext.SaveChangesAsync();
-            Console.WriteLine("Your balance has been update successfully.");
-        }
-
-        public async Task AddToAtmAmountAsync(int atmId, decimal atmAvailableCash)
+        public async Task UpdateAtmAmountAsync(int atmId, decimal atmAvailableCash)
         {
             AtmDbContext DbContext = atmDbFactory.CreateDbContext(null);
             var AtmInfo = await DbContext.Atms.SingleOrDefaultAsync(atm => atm.Id == atmId);

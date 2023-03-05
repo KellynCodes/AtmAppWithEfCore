@@ -134,6 +134,12 @@ namespace AtmBLL.Implementation
                 message.Error("Empty input. Please try again.");
                 goto EnterYourPin;
             }
+            
+            if (SecretInput.Hash().Length > 4)
+            {
+                message.Error("Pin Cannot be greater than or less than 4 digits. Please try again.");
+                goto EnterYourPin;
+            }
             return SecretInput.Hash();
         }
     }
